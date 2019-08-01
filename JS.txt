@@ -1,0 +1,108 @@
+//index.js
+Page({
+
+  /**
+   * 页面的初始数据
+   */
+  data: {
+    arr: [],
+    WordWidth: null,
+    firstDay: null,
+    NumDay: null,
+    weekArr: ['Sun', 'Mon', 'Tues', 'Wed', 'Thurs', 'Fri', 'Sat'],
+    year: null,
+    getData: null,
+    marginData: null
+  },
+  //获取日历相关参数
+  dataTime: function () {
+    var date = new Date();
+    var year = date.getFullYear();
+    var month = date.getMonth();
+    this.data.year = year; // 获取现今年份
+    this.data.month = month; // 获取现今月份
+    //今天的日期 
+    this.data.getData = date.getDate()
+    //这月份1号是星期几
+    var dummy = new Date(year, month, 1);
+    this.data.firstDay = dummy
+    // 这月份几天
+    var dummy = new Date(year, month + 1, 0);
+    this.data.NumDay = dummy;
+    // 切换月份
+  },
+  /**
+   * 生命周期函数--监听页面加载
+   */
+  onLoad: function (options) {
+    this.dataTime();
+    // 在arr中填上这个月的所有日期
+    for (var i = 1; i <= this.data.NumDay; i++) {
+      this.data.arr.push(i);
+    }
+    var res = wx.getSystemInfoSync(); // Get Screen info 
+    // 改变"Data"里的值
+    this.setdata
+      ({
+        WordWidth: (res.windowHeight / 12),
+        arr: (this.data.arr),
+        year: (this.data.year),
+        month: (this.data.month),
+        marginfactor: (this.data.firstDay) // The margin of the day 1 on the calendar 
+      });
+    // 星期数组
+    for (var i = 0; i < this.data.NumDay; i++) {
+      var dummy = WordWidth * ((marginfactor + i) % 7)
+      this.data.marginData.push(dummy);
+    }
+  },
+
+  /**
+   * 生命周期函数--监听页面初次渲染完成
+   */
+  onReady: function () {
+
+  },
+
+  /**
+   * 生命周期函数--监听页面显示
+   */
+  onShow: function () {
+
+  },
+
+  /**
+   * 生命周期函数--监听页面隐藏
+   */
+  onHide: function () {
+
+  },
+
+  /**
+   * 生命周期函数--监听页面卸载
+   */
+  onUnload: function () {
+
+  },
+
+  /**
+   * 页面相关事件处理函数--监听用户下拉动作
+   */
+  onPullDownRefresh: function () {
+
+  },
+
+  /**
+   * 页面上拉触底事件的处理函数
+   */
+  onReachBottom: function () {
+
+  },
+
+  /**
+   * 用户点击右上角分享
+   */
+  onShareAppMessage: function () {
+
+  }
+})

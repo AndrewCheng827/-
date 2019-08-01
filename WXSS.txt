@@ -1,0 +1,32 @@
+/**index.wxss**/
+
+/** The LargeBox that contains the entire calendar **/
+.LargeBox{
+  display:flex; /**使用flex时的必写语句 **/
+  flex-wrap:wrap; /** 允许在单行字符过多时换行**/
+  margin:0 /** No Margin**/
+}
+
+/** DateBox properties **/
+.DateBox{
+  width:100%;
+  height:50px;
+  line-height:50px;
+  text-align:center;
+  margin-top:20px;
+  font-size:40rpx;
+}
+
+/**Modify the properties of objects being displayed with "View" in "LargeBox"**/
+view{
+  height:30px;
+  line-height:30px;
+  text-align:center;
+  font-size:34rpx;
+}
+/** Date Selected Icon **/
+.dateOn{
+  border-radius:50%; /** 设置对象使用圆角边框**/
+  background-color: hotpink;
+  color: #fff;
+}

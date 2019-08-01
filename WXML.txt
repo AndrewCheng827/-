@@ -1,0 +1,16 @@
+<!--index.wxml-->
+<text>miniprogram/pages/Main.wxml</text>
+<view class ='LargeBox' style='width:{{WordWidth*7}}px'> 
+// LargeBox is the largest box that contains the entire calendar 
+// Remember to set the width of the large box 
+<view class='DateBox'>{{year}}-{{month}}</view>
+// Display the year and month in the "DateBox" 
+//In the following format : 2019-8
+<block wx:for='{{weekArr}}'> // For each element in 'weekArr' repeat everything inside block
+  <view style='width:{{WordWidth}}px; height:{{WordWidth}}px; line-height:{{WordWidth}}'></view>
+  // Display each element in weekArr. Setting both width and height to "WordWidth" 
+</block>
+<block wx:for='{{Arr}}'> // For each element in 'Arr' repeat everything inside block
+  <view style='{{ index == 0 ? "margin-left:" + WordWidth * marginfactor + "px;" : "" }}width:{{WordWidth}}px;height:{{WordWidth}}px;line-height:{{WordWidth}}px'></view>
+</block>
+</view>
