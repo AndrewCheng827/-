@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "calendarApp",
+  "usingComponents": {
+    "calendar": "../../component/calendar/index"
+  }
+}
