@@ -1,0 +1,17 @@
+<view class = 'box'> 
+  <button class = "login" bindtap = 'login' form-type = 'submit' ><image src = '../../images/Login.jpg' mode = 'widthFix'></image></button>
+  <button class = 'add' bindtap = 'add' form-type = 'submit'><image src = '../../images/add.jpg' mode = 'widthFix'></image></button>
+</view>
+<calendar
+  calendarConfig="{{calendarConfig}}"
+  bind:afterTapDay="afterTapDay"
+  bind:whenChangeMonth="whenChangeMonth"
+  bind:afterCalendarRender="afterCalendarRender"
+></calendar>
+<view class = 'Container'>
+  <block  wx:if ='{{DisplayTime != null}}' wx:for ="{{DisplayTime}}">
+    <text class = 'Content'>{{DisplayTime[index]}} {{DisplayDes[index]}}</text>
+    <button class = 'Remove' bindtap = 'remove' form-type = 'submit' id = "{{index}}"><image src = '../../images/Cancel.jpg' mode = 'widthFix'></image></button>
+    <button class = 'Warn' bindtap = 'warn' form-type = 'submit' id = "{{index}}"><image src = '../../images/Warn.jpg' mode = 'widthFix'></image></button>
+  </block>
+</view>
