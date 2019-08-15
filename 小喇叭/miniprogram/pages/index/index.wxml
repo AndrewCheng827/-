@@ -3,13 +3,13 @@
     <view class="flex-treble padding-sm margin-xs radius">
       <text class="text-black text-xxl text " catchtap='triggerSuperPower'>小喇叭</text>
     </view>
-    <view class="flex-sm padding-sm margin-xs radius" bindtap='navigate' data-pagename="self">
+    <view class="flex-sm padding-sm margin-xs radius" data-pagename="self">
       <view class="cu-avatar round " style="background-image:url({{userInfo.avatarUrl}}); margin-left:10rpx;"></view>
     </view>
   </view>
 </view>
 
-<calendar calendarConfig="{{calendarConfig}}" bind:afterTapDay="afterTapDay" bind:whenChangeMonth="whenChangeMonth" bind:afterCalendarRender="afterCalendarRender"></calendar>
+<calendar class = "paddinglg" style = "margin-left: 10px; margin-right: 10px; margin-top:20px;" calendarConfig="{{calendarConfig}}" bind:afterTapDay="afterTapDay" bind:whenChangeMonth="whenChangeMonth" bind:afterCalendarRender="afterCalendarRender"></calendar>
 <view class='Container'>
   <block wx:if='{{DisplayTime != null}}' wx:for="{{DisplayTime}}" wx:key="">
     <text class='Content'>{{DisplayTime[index]}} {{DisplayDes[index]}}</text>
@@ -22,7 +22,7 @@
   </block>
 </view>
 
-  <button class='cu-btn bg-green' bindtap='add' wx:if = "{{isTeacher}}">
+  <button wx:if = "{{isTeacher == true}}" class='cu-btn bg-green' bindtap='add' >
     <text class="cuIcon-add text-white"></text>
   </button>
 
@@ -36,6 +36,49 @@
     </view>
     <view class="padding-xl">
       第一次打开小程序需要注册嗷
+    </view>
+    <view class="cu-bar bg-white justify-center">
+      <view class="action">
+        <form>
+          <view class="cu-form-group">
+            <view class="title">年级</view>
+            <picker bindchange="PickerChange" value="{{gradeIndex}}" range="{{gradePicker}}">
+              <view class="picker">
+                {{gradePicker[gradeIndex]}}
+              </view>
+            </picker>
+          </view>
+          <view class="cu-form-group">
+            <view class="title">班级</view>
+            <input placeholder="IB的1A和1B都填写1哦" bindinput='getClass' type='number'></input>
+          </view>
+          <view class="cu-form-group">
+            <view class="title">学号</view>
+            <input placeholder="把你的学号也给我交了" bindinput='getCode'></input>
+          </view>
+          <view class="cu-form-group">
+            <view class="title">代码</view>
+            <input placeholder="最后输入你手上的代码" bindinput='getValidation'></input>
+          </view>
+        </form>
+      </view>
+    </view>
+    <view class="padding-xl">
+      <button class='cu-btn bg-green lg' bindgetuserinfo='register' open-type="getUserInfo">注册</button>
+    </view>
+  </view>
+</view>
+
+<view class="cu-modal {{modalName=='newActivityModal'?'show':''}}">
+  <view class="cu-dialog bg-white">
+    <view class="cu-bar bg-white justify-end">
+      <view class="content">New Activity</view>
+      <view class="action" bindtap="hideModal">
+        <text class="cuIcon-close text-red"></text>
+      </view>
+    </view>
+    <view class="padding-xl">
+      Create New Modal
     </view>
     <view class="cu-bar bg-white justify-center">
       <view class="action">

@@ -40,9 +40,10 @@ Page({
     const db = wx.cloud.database()
     db.collection('Visits').add({
       data: {
-        Date:this.data.date,
-        Time:this.data.time, 
-        Description:this.data.description,
+        date:this.data.date,
+        time:this.data.time, 
+        description:this.data.description,
+        signedUp[]
       },
       success: function (res) {
         wx.navigateBack({ })

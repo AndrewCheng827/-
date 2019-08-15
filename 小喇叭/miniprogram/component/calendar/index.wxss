@@ -47,7 +47,7 @@
 }
 
 .fs24 {
-    font-size: 24rpx;
+    font-size: 20rpx;
 }
 
 .fs28 {
@@ -55,7 +55,7 @@
 }
 
 .fs32 {
-    font-size: 32rpx;
+    font-size: 25rpx;
 }
 
 .fs36 {
@@ -98,7 +98,7 @@
 .day {
     width: 85rpx;
     height: 85rpx;
-    font-size: 45rpx;
+    font-size: 35rpx;
     font-weight: 200;
 }
 
