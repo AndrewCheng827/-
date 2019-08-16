@@ -1,11 +1,13 @@
 const app = getApp();
 const db = wx.cloud.database();
 const _ = db.command;
-var openid = "";
+var openId = "";
 var gradeChosen = 'Class of 2020';
 var classChosen = 0;
 var codeChosen = '';
 var validationChosen = '';
+var roomChosen = '';
+var descChosen = '';
 
 const conf = {
   data: {
@@ -13,11 +15,13 @@ const conf = {
     gradePicker: ['Class of 2020', 'Class of 2021', 'Class of 2022', 'Class of 2023', 'Class of 2024'],
     calendarConfig: {},
     isTeacher:false,
+    time: '08:30',
+    date: '2019-09-01',
     Today: null,
     Selected: null,
-    DisplayTime: null, // Time to be displayed 
-    DisplayDes: null, // Description to be displayed 
-    ToDelete: null
+    ToDelete: null,
+    hasSchedules:false,
+    buildingChosen: "Xian Mian Building"
   },
 
   onLoad: function() {
@@ -25,7 +29,7 @@ const conf = {
       env: 'cloud-o1n8p',
       traceuser: true
     })
-    this.onGetOpenid();
+    this.onGetopenId();
   },
 
   //隐藏弹窗
@@ -36,14 +40,14 @@ const conf = {
     });
   },
 
-  //获取用户openid
-  onGetOpenid: function () {
+  //获取用户openId
+  onGetopenId: function () {
     wx.cloud.callFunction({
       name: 'login',
       data: {},
       success: res => {
-        openid = res.result.openid;
-        app.globalData.openid = res.result.openid;
+        openId = res.result.openId;
+        app.globalData.openId = res.result.openId;
         this.sync();
       },
       fail: err => {
@@ -57,7 +61,7 @@ const conf = {
   //从数据库下载用户信息
   sync: function () {
     var that = this;
-    db.collection('user').doc(openid).get({ //建立或者更新数据库信息
+    db.collection('user').doc(openId).get({ //建立或者更新数据库信息
       success: function (res) {
         app.globalData.user = res.data;
         // res.data 包含该记录的数据
@@ -79,6 +83,17 @@ const conf = {
 
   },
 
+  TimeChange(e) {
+    this.setData({
+      time: e.detail.value
+    })
+  },
+  DateChange(e) {
+    this.setData({
+      date: e.detail.value
+    })
+  },
+
   //获取班级
   getClass: function (e) {
     classChosen = e.detail.value;
@@ -94,6 +109,14 @@ const conf = {
     validationChosen = e.detail.value;
   },
 
+  getRoom: function (e) {
+    roomChosen = e.detail.value;
+  },
+
+  getDesc: function (e) {
+    descChosen = e.detail.value;
+  },
+
   //获取年级
   PickerChange(e) {
     this.setData({
@@ -102,21 +125,91 @@ const conf = {
     gradeChosen = this.data.gradePicker[e.detail.value];
   },
 
+  dateChange: function (e) {
+    this.setData({
+      date: e.detail.value
+    })
+  },
+
+  timeChange: function (e) {
+    this.setData({
+      time: e.detail.value
+    })
+  }, 
+
+  //新建活动
+  addActivity: function (res) {
+    if (descChosen != '' && roomChosen != '') {
+      var that = this;
+      var location = this.data.buildingChosen + " " + roomChosen;
+      wx.showLoading({
+        title: '正在处理中',
+      })
+      db.collection('Visits').add({
+        data: {
+          execTime: that.data.time, // 触发时间。到达这个时间开始执行。
+          Time: that.data.time,
+          Date: that.data.date,
+          location: location,
+          description: descChosen,
+          lazybugs:[]
+        },
+        success: function (res) {
+          wx.hideLoading();
+          wx.showToast({
+            title: '成功创建活动',
+          })
+          that.setData({
+            modalName:null
+          })
+          wx.reLaunch({
+            url: '../index/index',
+          })
+        }
+        })
+    }
+    else {
+      wx.showToast({
+        title: '信息未完善',
+        icon:"none"
+      })
+    }
+
+  },
+
+  buildingChange: function(e){
+    var buildingTemp = "Xian Mian Building"
+    if (this.data.buildingChosen == "Xian Mian Building"){
+      buildingTemp = "New Building"
+    }
+    this.setData({
+      buildingChosen: buildingTemp
+    })
+  },
+
   //用户注册
   register: function (res) {
-    var secretCode = '11-1=2';
-    if (classChosen != '' && codeChosen != '' && validationChosen == secretCode && classChosen > 0 && classChosen < 11 && codeChosen.substr(0, 1) == 'G') {
+    var studentCode = "hizuji";
+    var teacherCode = "saigo";
+    var isTeacher = false;
+
+    if(validationChosen == teacherCode){
+      isTeacher = true;
+      validationChosen = studentCode;
+    }
+
+    if (classChosen != '' && codeChosen != '' && validationChosen == studentCode && classChosen > 0 && classChosen < 12 && codeChosen.substr(0, 1) == 'G') {
       var that = this;
       var userInfo = res.detail.userInfo;
       app.globalData.user = userInfo;
       db.collection('user').add({
         data: {
-          _id: openid,
+          _id: openId,
           info: userInfo,
           grade: gradeChosen,
           classroom: classChosen,
           code: codeChosen,
-          isTeacher: false,
+          isTeacher: isTeacher,
         }
       });
       app.globalData.user = res.data;
@@ -158,29 +251,36 @@ const conf = {
   },
 
   afterTapDay(e) { // Click On Day 
+    this.setData({
+      hasSchedules:false
+    })
     var that = this
+    var dummy = e.detail.month;
+    var day = e.detail.day;
     if (e.detail.month < 10) {
       var dummy = String("0" + e.detail.month)
     }
+    if (e.detail.day < 10) {
+      var day = String("0" + e.detail.day)
+    }
     this.setData({
-      Selected: String(e.detail.year + "-" + dummy + "-" + e.detail.day)
+      Selected: String(e.detail.year + "-" + dummy + "-" + day)
     })
+    console.log(String(e.detail.year + "-" + dummy + "-" + day))
     const db = wx.cloud.database()
     db.collection('Visits').where({
         Date: this.data.Selected
       })
       .get({
         success: function(res) {
-          var TimeDummy = []
-          var DesDummy = []
-          var AmountDummy = []
+          console.log(res)
+          var schedules = [];
           for (var i = 0; i < res.data.length; i++) {
-            TimeDummy.push(res.data[i].Time)
-            DesDummy.push(res.data[i].Description)
+              schedules.push(res.data[i])
           }
           that.setData({
-            DisplayTime: TimeDummy,
-            DisplayDes: DesDummy
+            hasSchedules:true,
+            schedules:schedules
           })
         },
         fail: function(res) {
@@ -188,6 +288,7 @@ const conf = {
         }
       })
   },
+
   whenChangeMonth(e) { // Change Month 
     console.log('whenChangeMonth', e.detail);
   },
@@ -197,20 +298,29 @@ const conf = {
     console.log('afterCalendarRender', e);
   },
 
-  navigate: function() {
-    wx.navigateTo({
-      url: '/pages/login/login',
+  showNewActivity: function() {
+    this.setData({
+modalName:"newActivityModal"
     })
   },
 
-  add: function() {
-      wx.navigateTo({
-        url: '/pages/add/add',
+  setAlarm: function(event) {
+    console.log(event);
+    var formId = event.detail.formId;
+    wx.cloud.callFunction({
+      name: 'updateDB',
+      data: {
+        dbName: "Visits",
+        id: event.currentTarget.id,
+        openId: openId,
+        formId: formId 
+      }
+    }).then(res => {
+      wx.showToast({
+        title: 'Success!',
       })
-  },
-
-  setAlarm: function() {
-
+    }).catch(console.error);
+    console.log(event)
   },
 
   remove: function(e) {

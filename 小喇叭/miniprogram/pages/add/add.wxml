@@ -1,9 +1,0 @@
-<!--pages/add/add.wxml-->
-<picker class = 'date' mode = 'date' bindchange = 'dateChange'>
-  <view>Current Choice: {{date}}</view> 
-</picker> 
-<picker class = 'time' mode = 'time' bindchange = 'timeChange'> 
-  <view> Current Choice: {{time}}</view> 
-</picker> 
-<input class = 'description' type = 'text' confirm-type = 'done' placeholder = 'description' placeholder-style = 'font-weight:bold; color:black; font-size:36rpx' bindblur = 'Done'/>
-<button class = 'confirm' type = 'primary' form-type = 'submit' bindtap = 'ConfirmAdd'>Confirm</button>

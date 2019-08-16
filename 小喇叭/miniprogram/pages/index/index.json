@@ -1,5 +1,5 @@
 {
-  "navigationBarTitleText": "calendarApp",
+  "navigationBarTitleText": "SHSID 小喇叭",
   "usingComponents": {
     "calendar": "../../component/calendar/index"
   }

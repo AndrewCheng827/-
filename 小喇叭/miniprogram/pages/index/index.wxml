@@ -1,30 +1,40 @@
-<view class="padding">
-  <view class="flex animated fadeInDown">
-    <view class="flex-treble padding-sm margin-xs radius">
-      <text class="text-black text-xxl text " catchtap='triggerSuperPower'>小喇叭</text>
+<view class="bg-img bg-mask padding-tb-xl" style="background-image: url('https://wx1.sinaimg.cn/mw690/006tozhpgy1g5zenmgujyj31900u0e87.jpg');height: 414rpx;">
+  <view class="padding text-white">
+   <view class="radius" data-pagename="self">
+      <view class="cu-avatar lg round" style="background-image:url({{userInfo.avatarUrl}}); margin-left:10rpx; maring-bottom:10px;"></view>
     </view>
-    <view class="flex-sm padding-sm margin-xs radius" data-pagename="self">
-      <view class="cu-avatar round " style="background-image:url({{userInfo.avatarUrl}}); margin-left:10rpx;"></view>
+    <view class="padding-xs text-xl">
+      SHSID小喇叭
+    </view>
+    <view class="padding-xs">
+      实时获取讲座资讯
     </view>
   </view>
 </view>
 
-<calendar class = "paddinglg" style = "margin-left: 10px; margin-right: 10px; margin-top:20px;" calendarConfig="{{calendarConfig}}" bind:afterTapDay="afterTapDay" bind:whenChangeMonth="whenChangeMonth" bind:afterCalendarRender="afterCalendarRender"></calendar>
+<calendar class="paddinglg" style="margin-left: 10px; margin-right: 10px; margin-top:20px;" calendarConfig="{{calendarConfig}}" bind:afterTapDay="afterTapDay" bind:whenChangeMonth="whenChangeMonth" bind:afterCalendarRender="afterCalendarRender"></calendar>
+
 <view class='Container'>
-  <block wx:if='{{DisplayTime != null}}' wx:for="{{DisplayTime}}" wx:key="">
-    <text class='Content'>{{DisplayTime[index]}} {{DisplayDes[index]}}</text>
+  <block wx:if='{{hasSchedules}}' wx:for="{{schedules}}" wx:key="">
+    <text class='Content'>{{item.Time}} {{item.description}}</text>
     <button class='Remove' bindtap='remove' form-type='submit' id="{{index}}">
       <image src='../../images/Cancel.jpg' mode='widthFix'></image>
     </button>
-    <button class='Warn' bindtap='setAlarm' form-type='submit' id="{{index}}">
+
+    <form bindsubmit="setAlarm" report-submit="true" id="{{item._id}}">
+        <button class='Warn' form-type='submit'>
       <image src='../../images/Warn.jpg' mode='widthFix'></image>
     </button>
+    </form>
+
   </block>
 </view>
 
-  <button wx:if = "{{isTeacher == true}}" class='cu-btn bg-green' bindtap='add' >
-    <text class="cuIcon-add text-white"></text>
-  </button>
+<view class="flex align-center justify-center">
+<button wx:if="{{isTeacher == true}}" class='cu-btn lg bg-green' bindtap='showNewActivity'>
+  <text class="cuIcon-add text-white"></text>
+</button>
+</view>
 
 <view class="cu-modal {{modalName=='registerModal'?'show':''}}">
   <view class="cu-dialog bg-white">
@@ -38,9 +48,8 @@
       第一次打开小程序需要注册嗷
     </view>
     <view class="cu-bar bg-white justify-center">
-      <view class="action">
         <form>
-          <view class="cu-form-group">
+          <view class="cu-form-group margin-top">
             <view class="title">年级</view>
             <picker bindchange="PickerChange" value="{{gradeIndex}}" range="{{gradePicker}}">
               <view class="picker">
@@ -62,7 +71,6 @@
           </view>
         </form>
       </view>
-    </view>
     <view class="padding-xl">
       <button class='cu-btn bg-green lg' bindgetuserinfo='register' open-type="getUserInfo">注册</button>
     </view>
@@ -72,42 +80,45 @@
 <view class="cu-modal {{modalName=='newActivityModal'?'show':''}}">
   <view class="cu-dialog bg-white">
     <view class="cu-bar bg-white justify-end">
-      <view class="content">New Activity</view>
+      <view class="content">新建活动信息</view>
       <view class="action" bindtap="hideModal">
         <text class="cuIcon-close text-red"></text>
       </view>
     </view>
-    <view class="padding-xl">
-      Create New Modal
-    </view>
     <view class="cu-bar bg-white justify-center">
-      <view class="action">
         <form>
-          <view class="cu-form-group">
-            <view class="title">年级</view>
-            <picker bindchange="PickerChange" value="{{gradeIndex}}" range="{{gradePicker}}">
-              <view class="picker">
-                {{gradePicker[gradeIndex]}}
-              </view>
-            </picker>
+        <view class="cu-form-group margin-top">
+          <view class="title">时间选择</view>
+          <picker mode="time" value="{{time}}" start="09:01" end="21:01" bindchange="TimeChange">
+            <view class="picker">
+              {{time}}
+            </view>
+          </picker>
+        </view>
+         <view class="cu-form-group">
+          <view class="title">日期选择</view>
+          <picker mode="date" value="{{date}}" start="2015-09-01" end="2020-09-01" bindchange="DateChange">
+            <view class="picker">
+              {{date}}
+            </view>
+          </picker>
+        </view>
+        	<view class="cu-form-group">
+          		<view class="title">教学楼：{{buildingChosen}}</view>
+		<switch class="switch-sex" checked bindchange="buildingChange"></switch>
+	</view>
+            <view class="cu-form-group">
+            <view class="title">教室</view>
+            <input placeholder="输入教室信息" bindinput='getRoom'></input>
           </view>
           <view class="cu-form-group">
-            <view class="title">班级</view>
-            <input placeholder="IB的1A和1B都填写1哦" bindinput='getClass' type='number'></input>
-          </view>
-          <view class="cu-form-group">
-            <view class="title">学号</view>
-            <input placeholder="把你的学号也给我交了" bindinput='getCode'></input>
-          </view>
-          <view class="cu-form-group">
-            <view class="title">代码</view>
-            <input placeholder="最后输入你手上的代码" bindinput='getValidation'></input>
+            <view class="title">活动信息</view>
+            <input placeholder="输入活动信息" bindinput='getDesc'></input>
           </view>
         </form>
       </view>
-    </view>
     <view class="padding-xl">
-      <button class='cu-btn bg-green lg' bindgetuserinfo='register' open-type="getUserInfo">注册</button>
+      <button class='cu-btn bg-green lg' bindtap='addActivity'>提交</button>
     </view>
   </view>
 </view>
