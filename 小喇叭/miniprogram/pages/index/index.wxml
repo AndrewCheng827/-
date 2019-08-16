@@ -1,38 +1,36 @@
-<view class="bg-img bg-mask padding-tb-xl" style="background-image: url('https://wx1.sinaimg.cn/mw690/006tozhpgy1g5zenmgujyj31900u0e87.jpg');height: 414rpx;">
-  <view class="padding text-white">
-   <view class="radius" data-pagename="self">
-      <view class="cu-avatar lg round" style="background-image:url({{userInfo.avatarUrl}}); margin-left:10rpx; maring-bottom:10px;"></view>
+  <view class="padding bg-white">
+    <view class="flex animated fadeInDown" >
+      <view class="flex-treble padding-sm margin-xs radius">
+        <text class="text-black text-xxl text " catchtap='roll'>SHSID小喇叭</text>
+      </view>
+      <view class="flex-sm padding-sm margin-xs radius" bindtap='navigate' data-pagename="self">
+        <view class="cu-avatar round " style="background-image:url({{userInfo.avatarUrl}}); margin-left:10rpx;"></view>
+      </view>
     </view>
-    <view class="padding-xs text-xl">
-      SHSID小喇叭
-    </view>
-    <view class="padding-xs">
-      实时获取讲座资讯
-    </view>
-  </view>
-</view>
+        </view>
 
 <calendar class="paddinglg" style="margin-left: 10px; margin-right: 10px; margin-top:20px;" calendarConfig="{{calendarConfig}}" bind:afterTapDay="afterTapDay" bind:whenChangeMonth="whenChangeMonth" bind:afterCalendarRender="afterCalendarRender"></calendar>
 
-<view class='Container'>
-  <block wx:if='{{hasSchedules}}' wx:for="{{schedules}}" wx:key="">
-    <text class='Content'>{{item.Time}} {{item.description}}</text>
-    <button class='Remove' bindtap='remove' form-type='submit' id="{{index}}">
-      <image src='../../images/Cancel.jpg' mode='widthFix'></image>
-    </button>
-
-    <form bindsubmit="setAlarm" report-submit="true" id="{{item._id}}">
-        <button class='Warn' form-type='submit'>
-      <image src='../../images/Warn.jpg' mode='widthFix'></image>
-    </button>
+ <block wx:if='{{hasSchedules}}' wx:key="">
+  <view class="cu-list menu {{menuBorder?'sm-border':''}} {{menuCard?'card-menu margin-top':''}}">
+    <view class="cu-item {{menuArrow?'arrow':''}}" wx:for = "{{schedules}}">
+      <view class="content">
+        <text class="text-grey">{{item.Time}} {{item.description}}</text>
+      </view>
+      <view class="action">
+          <form bindsubmit="setAlarm" report-submit="true" id="{{item._id}}">
+        <button class="cu-btn round bg-green shadow" style="margin-right:10px;" form-type="submit">
+          <text class="cuIcon-notice"></text> 设置提醒</button>
     </form>
-
+      </view>
+    </view>
+  </view>
   </block>
-</view>
 
 <view class="flex align-center justify-center">
 <button wx:if="{{isTeacher == true}}" class='cu-btn lg bg-green' bindtap='showNewActivity'>
   <text class="cuIcon-add text-white"></text>
+  <text>添加活动</text>
 </button>
 </view>
 
@@ -122,3 +120,5 @@
     </view>
   </view>
 </view>
+
+<canvas id="test-canvas" canvas-id="test-canvas"></canvas>

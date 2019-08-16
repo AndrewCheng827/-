@@ -1,3 +1,14 @@
+import lottie from 'lottie-miniapp';
+
+const canvasContext = wx.createCanvasContext('test-canvas');
+// 请求lottie的路径。注意开启downloadFile域名并且返回格式是json
+const animationPath = 'https://assets7.lottiefiles.com/packages/lf20_jpxsQh.json';
+
+canvasContext.canvas = {
+  width: 100,
+  height: 100
+};
+
 const app = getApp();
 const db = wx.cloud.database();
 const _ = db.command;
@@ -30,6 +41,18 @@ const conf = {
       traceuser: true
     })
     this.onGetopenId();
+
+    // 如果同时指定 animationData 和 path， 优先取 animationData
+    lottie.loadAnimation({
+      renderer: 'canvas', // 只支持canvas
+      loop: true,
+      autoplay: true,
+      path: animationPath,
+      rendererSettings: {
+        context: canvasContext,
+        clearCanvas: true
+      }
+    });
   },
 
   //隐藏弹窗
