@@ -5,34 +5,32 @@ const db = cloud.database()
 
 exports.main = async (event, context) => {
   console.log("running remindPusher")
+  const rp = require('request-promise');
+  var token = event.token;
+  var msgId = event.MSGID;
+  var msgData = event.msgData;
+  var openId = event.openId;
+  var formId = event.formId;
+  var page = event.page;
+  console.log("All checked sending request now")
+    await rp({
+      json: true,
+      method: 'POST', 
+      uri: 'https://api.weixin.qq.com/cgi-bin/message/wxopen/template/send?access_token=' + token,
+      body: {
+        touser: openId,
+        template_id: msgId,
+        page: page,
+        form_id: formId,
+        data: msgData
+      }
+    })
+  console.log("All Done.")
+}
+
+/*
   const activity = await db.collection('Visits').doc(event._id).get();
   console.log(activity)
-  for(var i = 0; i < event.lazybugs.length; i++){
-    try {
-      const result = await cloud.openapi.templateMessage.send({
-        touser: event.lazybugs[i].openId,
-        data: {
-          keyword1: {
-            value: activity.data.description
-          },
-          keyword2: {
-            value: activity.data.Date
-          },
-          keyword3: {
-            value: activity.data.location
-          }
-        },
-        templateId: 'gZnL146J6KIF8TxzbYByfl-p90dFo03VJL7zRt3ujEY',
-        formId: event.lazybugs[i].formId,
-        emphasisKeyword: 'keyword1.DATA'
-      })
-      console.log(result)
-      return result
-    } catch (err) {
-      console.log(err)
-      return err
-    }
-  }
-
-
-}
+  console.log(event.lazybugs)
+  var lazybug = {};
+*/

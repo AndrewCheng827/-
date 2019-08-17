@@ -1,4 +1,7 @@
 const cloud = require('wx-server-sdk')
+const COLL_FIELD_NAME = 'publicField';
+const FIELD_NAME = 'ACCESS_TOKEN'
+const MSGID = "gZnL146J6KIF8TxzbYByfl-p90dFo03VJL7zRt3ujEY"
 cloud.init({
   env: 'cloud-o1n8p'
 })
@@ -31,19 +34,45 @@ exports.main = async (event, context) => {
   for (let i = 0; i < execTasks.length; i++) {
     let task = execTasks[i];
     console.log(task)
-      try {
-          console.log("Running reminder")
-          const res = await cloud.callFunction({
-            // 要调用的云函数名称
-            name: 'remindPusher',
-            data:{
-              id:task._id,
-              lazybugs: task.lazybugs
-            }
-          })
-          console.log(res.result)
-      } catch (e) {
-        console.error(e)
+    console.log(task.lazybugs)
+    // 从数据库中获取AccessToken
+    let tokenRes = await db.collection(COLL_FIELD_NAME).doc(FIELD_NAME).get();
+    let token = tokenRes.data.token; // access_token
+    let page = 'pages/index/index';
+    let msgData = {
+      keyword1: {
+        value: task.description
+      },
+      keyword2: {
+        value: task.Date
+      },
+      keyword3: {
+        value: task.location
       }
+    };
+
+    for (var j = 0; j < task.lazybugs.length; j++) {
+      try {
+        let openId = task.lazybugs[j].openId;
+        let formId = task.lazybugs[j].formId;
+        const res = await cloud.callFunction({
+          // 要调用的云函数名称
+          name: 'remindPusher',
+          data: {
+            token: token,
+            MSGID: MSGID,
+            msgData: msgData,
+            openId: openId,
+            formId: formId,
+            page: page
+          } 
+        })
+
+        return res
+      } catch (err) {
+        console.log(err)
+        return err
+      }
+    } 
   }
 }
