@@ -20,7 +20,7 @@ exports.main = async (event, context) => {
     console.log("Running execTime Function")
     for (let i = 0; i < tasks.length; i++) {
       var taskDate = new Date(Date.parse(tasks[i].Date))
-      if (taskDate.getDay() == now.getDay() && taskDate.getMonth() == now.getMonth() && taskDate.getFullYear() == now.getFullYear()) { // 时间到
+      if (taskDate.getDate() == now.getDate() && taskDate.getMonth() == now.getMonth() && taskDate.getFullYear() == now.getFullYear()) { // 时间到
       console.log("find one!")
         execTasks.push(tasks[i]); // 存入待执行任务栈
         // 定时任务数据库中删除该任务

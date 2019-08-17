@@ -9,5 +9,8 @@
     "navigationBarTextStyle": "black"
   },
   "sitemapLocation": "sitemap.json",
-  "cloud": true
+  "cloud": true,
+  "requiredBackgroundModes": [
+    "audio"
+  ]
 }

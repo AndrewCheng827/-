@@ -2,16 +2,18 @@ import lottie from 'lottie-miniapp';
 
 const canvasContext = wx.createCanvasContext('test-canvas');
 // 请求lottie的路径。注意开启downloadFile域名并且返回格式是json
-const animationPath = 'https://assets7.lottiefiles.com/packages/lf20_jpxsQh.json';
+const animationData = require('../../utils/rainbowCat.js');
+const app = getApp();
+const db = wx.cloud.database();
+const _ = db.command;
 
+//设置lottie动画canvas
 canvasContext.canvas = {
   width: 100,
   height: 100
 };
 
-const app = getApp();
-const db = wx.cloud.database();
-const _ = db.command;
+//表单参数，Todo：优化为Form形式
 var openId = "";
 var gradeChosen = 'Class of 2020';
 var classChosen = 0;
@@ -20,39 +22,52 @@ var validationChosen = '';
 var roomChosen = '';
 var descChosen = '';
 
+var count = 0;
+
 const conf = {
   data: {
+    calendarConfig: {
+      inverse: true, // 单选模式下是否支持取消选中,
+      disablePastDay: false, // 是否禁选过去的日期
+      firstDayOfWeek: 'Mon', // 每周第一天为周一还是周日，默认按周日开始
+      onlyShowCurrentMonth: true, // 日历面板是否只显示本月日期
+      showHandlerOnWeekMode: true, // 周视图模式是否显示日历头部操作栏，hideHeadOnWeekMode 优先级高于此配置
+      /**
+       * 初始化日历时指定默认选中日期，如：'2018-3-6' 或 '2018-03-06'
+       * 注意：若想初始化时不默认选中当天，则将该值配置为除 undefined 以外的其他非值即可，如：空字符串, 0 ,false等。
+      */
+      noDefault: true, // 初始化后是否自动选中当天日期，优先级高于defaultDay配置，两者请勿一起配置
+    },
     gradeIndex: 0,
     gradePicker: ['Class of 2020', 'Class of 2021', 'Class of 2022', 'Class of 2023', 'Class of 2024'],
-    calendarConfig: {},
     isTeacher:false,
     time: '08:30',
     date: '2019-09-01',
-    Today: null,
-    Selected: null,
-    ToDelete: null,
     hasSchedules:false,
     buildingChosen: "Xian Mian Building"
   },
 
+  //首次加载页面
   onLoad: function() {
     wx.cloud.init({
       env: 'cloud-o1n8p',
       traceuser: true
     })
     this.onGetopenId();
+    this.onGetCalendarShedules();
 
-    // 如果同时指定 animationData 和 path， 优先取 animationData
+    //运行动画，如果同时指定 animationData 和 path， 优先取 animationData
     lottie.loadAnimation({
       renderer: 'canvas', // 只支持canvas
       loop: true,
       autoplay: true,
-      path: animationPath,
+      animationData: animationData,
       rendererSettings: {
         context: canvasContext,
         clearCanvas: true
       }
     });
+
   },
 
   //隐藏弹窗
@@ -60,6 +75,49 @@ const conf = {
     this.setData({
       modalName: null,
       isBlur: false,
+    });
+  },
+
+  //获取Calendar信息，渲染本地Todos
+  onGetCalendarShedules: function(){
+    var that = this;
+    wx.cloud.callFunction({
+      name: 'getDB',
+      data: {
+        dbName: "Visits"
+      }
+    })
+      .then(res => {
+        that.parseInfo(res.result.data);
+      })
+      .catch(console.error);
+  },
+
+  //解析Calendar信息，
+  parseInfo: function(calendarSchedules){
+    var that = this;
+    var processingDate = new Date();
+    var processingDay = {};
+    var processedDays = [];
+    console.log(calendarSchedules)
+    for(var i = 0; i < calendarSchedules.length; i++){
+      processingDate =  new Date(Date.parse(calendarSchedules[i].Date));
+      processingDay = {
+        year: processingDate.getFullYear(),
+        month: processingDate.getMonth()+1,
+        day: processingDate.getDate(),
+        todoText: calendarSchedules[i].description
+      };
+      processedDays.push(processingDay);
+    }
+    console.log(processedDays)
+    that.calendar.setTodoLabels({
+      // 待办点标记设置
+      pos: 'bottom', // 待办点标记位置 ['top', 'bottom']
+      dotColor: '#40', // 待办点标记颜色
+      circle: false, // 待办圆圈标记设置（如圆圈标记已签到日期），该设置与点标记设置互斥
+      showLabelAlways: true, // 点击时是否显示代办标记（圆点/文字），在 circle 为 true 时无效
+      days: processedDays,
     });
   },
 
@@ -79,6 +137,24 @@ const conf = {
         });
       }
     });
+  },
+
+  //彩蛋函数
+  easterEgg: function(){
+    count += 1;
+    if(count == 3){
+      wx.showModal({
+        title: '提示',
+        content: '没有彩蛋哦',
+      })
+    }
+    else if(count == 6){
+      wx.showModal({
+        title: '噗呲，不是都说没有了吗',
+        content: '好吧好吧给你讲个笑话：从前有座山，山上有座庙。庙里有个小和尚，后面的我忘了',
+      })
+      count = 0;
+    }
   },
 
   //从数据库下载用户信息
@@ -106,11 +182,56 @@ const conf = {
 
   },
 
+  //新建活动
+  addActivity: function (res) {
+    if (descChosen != '' && roomChosen != '') {
+      var that = this;
+      var location = this.data.buildingChosen + " " + roomChosen;
+      wx.showLoading({
+        title: '正在处理中',
+      })
+      db.collection('Visits').add({
+        data: {
+          execTime: that.data.time, // 触发时间。到达这个时间开始执行。
+          Time: that.data.time,
+          Date: that.data.date,
+          location: location,
+          description: descChosen,
+          lazybugs: []
+        },
+        success: function (res) {
+          wx.hideLoading();
+          wx.showToast({
+            title: '成功创建活动',
+          })
+          that.setData({
+            modalName: null
+          })
+          wx.reLaunch({
+            url: '../index/index',
+          })
+        }
+      })
+    }
+    else {
+      wx.showToast({
+        title: '信息未完善',
+        icon: "none"
+      })
+    }
+
+  },
+
+//以下为活动表单函数
+
+  //改变时间
   TimeChange(e) {
     this.setData({
       time: e.detail.value
     })
   },
+
+  //改变日期
   DateChange(e) {
     this.setData({
       date: e.detail.value
@@ -132,10 +253,12 @@ const conf = {
     validationChosen = e.detail.value;
   },
 
+  //获取教室
   getRoom: function (e) {
     roomChosen = e.detail.value;
   },
 
+  //获取活动信息
   getDesc: function (e) {
     descChosen = e.detail.value;
   },
@@ -148,67 +271,18 @@ const conf = {
     gradeChosen = this.data.gradePicker[e.detail.value];
   },
 
-  dateChange: function (e) {
-    this.setData({
-      date: e.detail.value
-    })
-  },
-
-  timeChange: function (e) {
-    this.setData({
-      time: e.detail.value
-    })
-  }, 
-
-  //新建活动
-  addActivity: function (res) {
-    if (descChosen != '' && roomChosen != '') {
-      var that = this;
-      var location = this.data.buildingChosen + " " + roomChosen;
-      wx.showLoading({
-        title: '正在处理中',
-      })
-      db.collection('Visits').add({
-        data: {
-          execTime: that.data.time, // 触发时间。到达这个时间开始执行。
-          Time: that.data.time,
-          Date: that.data.date,
-          location: location,
-          description: descChosen,
-          lazybugs:[]
-        },
-        success: function (res) {
-          wx.hideLoading();
-          wx.showToast({
-            title: '成功创建活动',
-          })
-          that.setData({
-            modalName:null
-          })
-          wx.reLaunch({
-            url: '../index/index',
-          })
-        }
-        })
-    }
-    else {
-      wx.showToast({
-        title: '信息未完善',
-        icon:"none"
-      })
-    }
-
-  },
-
-  buildingChange: function(e){
+  //监听教学楼变化，获取教学楼信息
+  buildingChange: function (e) {
     var buildingTemp = "Xian Mian Building"
-    if (this.data.buildingChosen == "Xian Mian Building"){
+    if (this.data.buildingChosen == "Xian Mian Building") {
       buildingTemp = "New Building"
     }
     this.setData({
       buildingChosen: buildingTemp
     })
   },
+
+//以上为活动表单函数
 
   //用户注册
   register: function (res) {
@@ -259,21 +333,8 @@ const conf = {
     }
   },
 
-  setTodo() {
-    const data = [{
-
-    }];
-    // 异步请求
-    setTimeout(() => {
-      this.calendar.setTodoLabels({
-        // showLabelAlways: true,
-        days: data
-      });
-    }, 1000);
-    this.calendar.enableArea(['2019-8-1', '2019-11-30']); //Make sure the calendar is always enabled for the next three months 
-  },
-
-  afterTapDay(e) { // Click On Day 
+  //点击日期
+  afterTapDay(e) { 
     this.setData({
       hasSchedules:false
     })
@@ -312,21 +373,22 @@ const conf = {
       })
   },
 
-  whenChangeMonth(e) { // Change Month 
+  //点击月份
+  whenChangeMonth(e) {  
     console.log('whenChangeMonth', e.detail);
+    this.setData({
+      schedules:null
+    })
   },
 
-  afterCalendarRender(e) {
-    this.setTodo();
-    console.log('afterCalendarRender', e);
-  },
-
+  //显示新建活动弹窗
   showNewActivity: function() {
     this.setData({
 modalName:"newActivityModal"
     })
   },
 
+  //设置提醒
   setAlarm: function(event) {
     console.log(event);
     var formId = event.detail.formId;
@@ -346,42 +408,13 @@ modalName:"newActivityModal"
     console.log(event)
   },
 
-  remove: function(e) {
-    //get button id : e.target.id
-    var it = this
-    var app = getApp()
-    var dummy = ''
-    if (app.globalData.logined == true) {
-      wx.showModal({
-        title: 'Warning',
-        content: 'Are you sure you want to proceed?',
-        success: function(res) {
-          if (res.confirm) {
-            const db = wx.cloud.database()
-            db.collection("Visits").where({
-              Date: it.data.Selected,
-              Time: it.data.DisplayTime[e.target.id],
-              Description: it.data.DisplayDes[e.target.id]
-            }).get({
-              success: function(res) {
-                dummy = res.data[0]._id
-                db.collection("Visits").doc(dummy).remove({
-                  success: function() {
-                    console.log("Deleted")
-                  }
-                })
-              }
-            })
-          }
-        }
-      })
-    } else {
-      wx.showModal({
-        title: 'Error',
-        content: 'Please Login First'
-      })
-    }
+  //播放猫咪叫声
+  miao: function () {
+    const backgroundAudioManager = wx.getBackgroundAudioManager();
+    backgroundAudioManager.title = 'MIAO!!!'
+    backgroundAudioManager.src = 'http://downsc.chinaz.net/Files/DownLoad/sound1/201807/10310.mp3'
   }
 };
+
 
 Page(conf);

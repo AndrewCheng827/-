@@ -3,13 +3,13 @@
       <view class="flex-treble padding-sm margin-xs radius">
         <text class="text-black text-xxl text " catchtap='roll'>SHSID小喇叭</text>
       </view>
-      <view class="flex-sm padding-sm margin-xs radius" bindtap='navigate' data-pagename="self">
-        <view class="cu-avatar round " style="background-image:url({{userInfo.avatarUrl}}); margin-left:10rpx;"></view>
+      <view class="flex-sm padding-sm margin-xs radius" bindtap='easterEgg' data-pagename="self">
+        <view class="cu-avatar round" style="background-image:url({{userInfo.avatarUrl}}); margin-left:10rpx;"></view>
       </view>
     </view>
         </view>
 
-<calendar class="paddinglg" style="margin-left: 10px; margin-right: 10px; margin-top:20px;" calendarConfig="{{calendarConfig}}" bind:afterTapDay="afterTapDay" bind:whenChangeMonth="whenChangeMonth" bind:afterCalendarRender="afterCalendarRender"></calendar>
+<calendar class="padding-lg" style="margin-left: 10px; margin-right: 10px; margin-top:20px;" calendarConfig="{{calendarConfig}}" bind:afterTapDay="afterTapDay" bind:whenChangeMonth="whenChangeMonth" bind:afterCalendarRender="afterCalendarRender"></calendar>
 
  <block wx:if='{{hasSchedules}}' wx:key="">
   <view class="cu-list menu {{menuBorder?'sm-border':''}} {{menuCard?'card-menu margin-top':''}}">
@@ -28,10 +28,10 @@
   </block>
 
 <view class="flex align-center justify-center">
-<button wx:if="{{isTeacher == true}}" class='cu-btn lg bg-green' bindtap='showNewActivity'>
-  <text class="cuIcon-add text-white"></text>
-  <text>添加活动</text>
-</button>
+  <button wx:if="{{isTeacher == true}}" class='cu-btn lg bg-green' bindtap='showNewActivity'>
+    <text class="cuIcon-add text-white"></text>
+    <text>添加活动</text>
+  </button>
 </view>
 
 <view class="cu-modal {{modalName=='registerModal'?'show':''}}">
@@ -121,4 +121,12 @@
   </view>
 </view>
 
-<canvas id="test-canvas" canvas-id="test-canvas"></canvas>
+<canvas catchtap="miao" id="test-canvas" canvas-id="test-canvas"></canvas>
+
+  <view class="padding-xs flex align-center bg-white">
+    <view class="flex-sub text-center">
+      <view class="solid-top text-xs padding">
+        <text class="text-gray" >Powered By QioNio - A basic yet complete O2O solution \n \n </text>
+      </view>
+    </view>
+  </view>
