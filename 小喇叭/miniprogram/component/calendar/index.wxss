@@ -124,7 +124,7 @@
 .todo-text {
     width: 150%;
     font-size: 22rpx;
-    color: #c2c2c2;
+    color: #e7564c;
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
@@ -199,7 +199,7 @@
 
 /* 日期选中 */
 .day-choosed-bg {
-    background-color: #8993aa;
+    background-color: #e7564c;
     transition: all 0.3s;
     animation-name: choosed;
     animation-duration: 0.5s;

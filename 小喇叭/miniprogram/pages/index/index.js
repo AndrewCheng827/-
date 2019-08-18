@@ -21,6 +21,8 @@ var codeChosen = '';
 var validationChosen = '';
 var roomChosen = '';
 var descChosen = '';
+var nameChosen = '';
+var chosenText = '';
 
 var count = 0;
 
@@ -114,7 +116,7 @@ const conf = {
     that.calendar.setTodoLabels({
       // 待办点标记设置
       pos: 'bottom', // 待办点标记位置 ['top', 'bottom']
-      dotColor: '#40', // 待办点标记颜色
+      dotColor: '#80', // 待办点标记颜色
       circle: false, // 待办圆圈标记设置（如圆圈标记已签到日期），该设置与点标记设置互斥
       showLabelAlways: true, // 点击时是否显示代办标记（圆点/文字），在 circle 为 true 时无效
       days: processedDays,
@@ -133,10 +135,16 @@ const conf = {
       },
       fail: err => {
         wx.showToast({
-          title: '出大问题',
+          title: 'Login Error',
         });
       }
     });
+  },
+
+  showModal: function (options) {
+    this.setData({
+      modalName: options.currentTarget.dataset.modalname
+    })
   },
 
   //彩蛋函数
@@ -165,12 +173,13 @@ const conf = {
         app.globalData.user = res.data;
         // res.data 包含该记录的数据
         wx.showToast({
-          title: '您已登录！',
+          title: 'Logged In!',
         });
         that.setData({
           userInfo: res.data.info,
           modalName: null,
         })
+        that.checkEmergency(res.data);
         that.isTeacher(res.data);
       },
       fail: function () {
@@ -188,7 +197,7 @@ const conf = {
       var that = this;
       var location = this.data.buildingChosen + " " + roomChosen;
       wx.showLoading({
-        title: '正在处理中',
+        title: 'Processing',
       })
       db.collection('Visits').add({
         data: {
@@ -202,7 +211,7 @@ const conf = {
         success: function (res) {
           wx.hideLoading();
           wx.showToast({
-            title: '成功创建活动',
+            title: 'Activity Created',
           })
           that.setData({
             modalName: null
@@ -215,11 +224,48 @@ const conf = {
     }
     else {
       wx.showToast({
-        title: '信息未完善',
+        title: 'Lack of Info',
         icon: "none"
       })
     }
 
+  },
+
+  addAlarm: function () {
+    var that = this;
+    db.collection('emergencyMessages').add({
+      data: {
+        content: chosenText
+      },
+      success: function (res) {
+        wx.cloud.callFunction({
+          name: 'getDB',
+          data: {
+            dbName: "user"
+          }
+        })
+          .then(res => {
+            for (var i = 0; i < res.result.data.length; i++) {
+              wx.cloud.callFunction({
+                name: 'updateDB',
+                data: {
+                  dbName: "user",
+                  id: res.result.data[i]._id,
+                  isAlarmed: false
+                }
+              })
+            }
+          }).then(res => {
+            wx.hideLoading();
+            wx.showToast({
+              title: '全局通知已推送',
+            })
+            that.setData({
+              modalName: null
+            })
+          })
+      }
+    })
   },
 
 //以下为活动表单函数
@@ -246,6 +292,11 @@ const conf = {
   //获取学号
   getCode: function (e) {
     codeChosen = e.detail.value;
+  },
+
+  //获取学号
+  getName: function (e) {
+    nameChosen = e.detail.value;
   },
 
   //获取校验码
@@ -288,14 +339,23 @@ const conf = {
   register: function (res) {
     var studentCode = "hizuji";
     var teacherCode = "saigo";
+    var parentCode = "nvwa"
     var isTeacher = false;
+    var isParent = false;
+    var isStudent = true;
 
     if(validationChosen == teacherCode){
       isTeacher = true;
+      isStudent = false;
       validationChosen = studentCode;
     }
+    else if (validationChosen == parentCode){
+      isParent = true;
+      isStudent = false;
+      validationChosen = parentCode;
+    }
 
-    if (classChosen != '' && codeChosen != '' && validationChosen == studentCode && classChosen > 0 && classChosen < 12 && codeChosen.substr(0, 1) == 'G') {
+    if (classChosen != '' && codeChosen != '' && nameChosen != '' && validationChosen == studentCode && classChosen > 0 && classChosen < 12 && codeChosen.substr(0, 1) == 'G') {
       var that = this;
       var userInfo = res.detail.userInfo;
       app.globalData.user = userInfo;
@@ -303,21 +363,27 @@ const conf = {
         data: {
           _id: openId,
           info: userInfo,
+          name:nameChosen,
           grade: gradeChosen,
           classroom: classChosen,
           code: codeChosen,
           isTeacher: isTeacher,
+          isStudent:isStudent,
+          isParent:isParent,
+          isAlarmed: false
         }
       });
       app.globalData.user = res.data;
       wx.showToast({
-        title: '您已注册！',
+        title: 'Registered!',
       });
-      that.sync();
+      wx.reLaunch({
+        url: '../index/index',
+      })
     }
     else {
       wx.showToast({
-        title: '别想混过去',
+        title: 'Info Incorrect',
       })
     }
 
@@ -331,6 +397,42 @@ const conf = {
         isTeacher: true
       });
     }
+  },
+
+  //获取推送内容
+  getText: function (e) {
+    chosenText = e.detail.value;
+  },
+
+  //检查全局推送状态
+  checkEmergency: function (user) {
+    var that = this;
+    console.log(user)
+    wx.hideLoading()
+    if (user.isAlarmed == false) {
+      wx.cloud.callFunction({
+        name: 'getDB',
+        data: {
+          dbName: "emergencyMessages"
+        }
+      })
+        .then(res => {
+          console.log(res.result.data)
+          wx.showModal({
+            title: 'NOTIFICATION',
+            content: res.result.data[res.result.data.length - 1].content,
+          })
+          wx.cloud.callFunction({
+            name: 'updateDB',
+            data: {
+              dbName: "user",
+              id: openId,
+              isAlarmed: true
+            }
+          })
+        })
+    }
+
   },
 
   //点击日期

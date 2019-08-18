@@ -1,8 +1,10 @@
   <view class="padding bg-white">
     <view class="flex animated fadeInDown" >
       <view class="flex-treble padding-sm margin-xs radius">
-        <text class="text-black text-xxl text " catchtap='roll'>SHSID小喇叭</text>
+        <text class="text-black text-xxl text " catchtap='roll'>SHSID \n Windtalker</text>
+                <view class="text-black text-sm radius" style='margin-top:10rpx;'>Activity notification app for SHSID</view>
       </view>
+      
       <view class="flex-sm padding-sm margin-xs radius" bindtap='easterEgg' data-pagename="self">
         <view class="cu-avatar round" style="background-image:url({{userInfo.avatarUrl}}); margin-left:10rpx;"></view>
       </view>
@@ -20,7 +22,7 @@
       <view class="action">
           <form bindsubmit="setAlarm" report-submit="true" id="{{item._id}}">
         <button class="cu-btn round bg-green shadow" style="margin-right:10px;" form-type="submit">
-          <text class="cuIcon-notice"></text> 设置提醒</button>
+          <text class="cuIcon-notice"></text> Notify Me</button>
     </form>
       </view>
     </view>
@@ -30,47 +32,55 @@
 <view class="flex align-center justify-center">
   <button wx:if="{{isTeacher == true}}" class='cu-btn lg bg-green' bindtap='showNewActivity'>
     <text class="cuIcon-add text-white"></text>
-    <text>添加活动</text>
+    <text>New Activity</text>
   </button>
+</view>
+
+<view wx:if="{{isTeacher == true}}" class='flex align-center justify-center' style="margin-top:15px;">
+<button class = "cu-btn lg bg-green" bindtap='showModal' data-modalname="newMessage">推送全局通知</button>
 </view>
 
 <view class="cu-modal {{modalName=='registerModal'?'show':''}}">
   <view class="cu-dialog bg-white">
     <view class="cu-bar bg-white justify-end">
-      <view class="content">注册</view>
+      <view class="content">Registration</view>
       <view class="action" bindtap="hideModal">
         <text class="cuIcon-close text-red"></text>
       </view>
     </view>
     <view class="padding-xl">
-      第一次打开小程序需要注册嗷
+      Registration is required for the first time opening this miniapp.
     </view>
     <view class="cu-bar bg-white justify-center">
         <form>
           <view class="cu-form-group margin-top">
-            <view class="title">年级</view>
+            <view class="title">Grade</view>
             <picker bindchange="PickerChange" value="{{gradeIndex}}" range="{{gradePicker}}">
               <view class="picker">
                 {{gradePicker[gradeIndex]}}
               </view>
             </picker>
           </view>
-          <view class="cu-form-group">
-            <view class="title">班级</view>
-            <input placeholder="IB的1A和1B都填写1哦" bindinput='getClass' type='number'></input>
+                    <view class="cu-form-group">
+            <view class="title">Name</view>
+            <input placeholder="Name of yourself or kid's..." bindinput='getName'></input>
           </view>
           <view class="cu-form-group">
-            <view class="title">学号</view>
-            <input placeholder="把你的学号也给我交了" bindinput='getCode'></input>
+            <view class="title">Class</view>
+            <input placeholder="Input 1 for both IB1A & IB1B" bindinput='getClass' type='number'></input>
           </view>
           <view class="cu-form-group">
-            <view class="title">代码</view>
-            <input placeholder="最后输入你手上的代码" bindinput='getValidation'></input>
+            <view class="title">StudentID</view>
+            <input placeholder="StudentID here..." bindinput='getCode'></input>
+          </view>
+          <view class="cu-form-group">
+            <view class="title">Validation Code</view>
+            <input placeholder="Validation code here..." bindinput='getValidation'></input>
           </view>
         </form>
       </view>
     <view class="padding-xl">
-      <button class='cu-btn bg-green lg' bindgetuserinfo='register' open-type="getUserInfo">注册</button>
+      <button class='cu-btn bg-green lg' bindgetuserinfo='register' open-type="getUserInfo">Register</button>
     </view>
   </view>
 </view>
@@ -78,7 +88,7 @@
 <view class="cu-modal {{modalName=='newActivityModal'?'show':''}}">
   <view class="cu-dialog bg-white">
     <view class="cu-bar bg-white justify-end">
-      <view class="content">新建活动信息</view>
+      <view class="content">New Activity</view>
       <view class="action" bindtap="hideModal">
         <text class="cuIcon-close text-red"></text>
       </view>
@@ -86,7 +96,7 @@
     <view class="cu-bar bg-white justify-center">
         <form>
         <view class="cu-form-group margin-top">
-          <view class="title">时间选择</view>
+          <view class="title">Time</view>
           <picker mode="time" value="{{time}}" start="09:01" end="21:01" bindchange="TimeChange">
             <view class="picker">
               {{time}}
@@ -94,7 +104,7 @@
           </picker>
         </view>
          <view class="cu-form-group">
-          <view class="title">日期选择</view>
+          <view class="title">Date</view>
           <picker mode="date" value="{{date}}" start="2015-09-01" end="2020-09-01" bindchange="DateChange">
             <view class="picker">
               {{date}}
@@ -102,21 +112,21 @@
           </picker>
         </view>
         	<view class="cu-form-group">
-          		<view class="title">教学楼：{{buildingChosen}}</view>
+          		<view class="title">Building：{{buildingChosen}}</view>
 		<switch class="switch-sex" checked bindchange="buildingChange"></switch>
 	</view>
             <view class="cu-form-group">
-            <view class="title">教室</view>
-            <input placeholder="输入教室信息" bindinput='getRoom'></input>
+            <view class="title">Classroom</view>
+            <input placeholder="Class room here..." bindinput='getRoom'></input>
           </view>
           <view class="cu-form-group">
-            <view class="title">活动信息</view>
-            <input placeholder="输入活动信息" bindinput='getDesc'></input>
+            <view class="title">Activity Name</view>
+            <input placeholder="Activity name here..." bindinput='getDesc'></input>
           </view>
         </form>
       </view>
     <view class="padding-xl">
-      <button class='cu-btn bg-green lg' bindtap='addActivity'>提交</button>
+      <button class='cu-btn bg-green lg' bindtap='addActivity'>Submit</button>
     </view>
   </view>
 </view>
@@ -130,3 +140,29 @@
       </view>
     </view>
   </view>
+
+  <view class="cu-modal {{modalName=='newMessage'?'show':''}}">
+  <view class="cu-dialog">
+    <view class="cu-bar bg-white justify-end">
+      <view class="content">全局通知推送</view>
+      <view class="action" bindtap="hideModal">
+        <text class="cuIcon-close text-red"></text>
+      </view>
+    </view>
+    <view class="padding-xl">
+      警告：全局通知将会通知所有下一次打开小程序的用户
+    </view>
+    <view class="cu-bar bg-white">
+      <view class="action">
+        <form>
+          <view class="cu-form-group">
+            <input placeholder='通知内容' bindinput='getText'></input>
+          </view>
+        </form>
+      </view>
+    </view>
+    <view class="padding-xl">
+      <button class='cu-btn bg-green lg' bindtap='addAlarm'>推送</button>
+    </view>
+  </view>
+</view>

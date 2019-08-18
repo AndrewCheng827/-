@@ -10,7 +10,8 @@ exports.main = async (event, context) => {
     }
     return await db.collection(event.dbName).doc(event.id).update({
       data: {
-        lazybugs: _.push(lazybug)
+        lazybugs: _.push(lazybug),
+        isAlarmed: event.isAlarmed
       }
     })
   } catch (e) {
