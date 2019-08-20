@@ -117,8 +117,8 @@ const conf = {
       // 待办点标记设置
       pos: 'bottom', // 待办点标记位置 ['top', 'bottom']
       dotColor: '#80', // 待办点标记颜色
-      circle: false, // 待办圆圈标记设置（如圆圈标记已签到日期），该设置与点标记设置互斥
-      showLabelAlways: true, // 点击时是否显示代办标记（圆点/文字），在 circle 为 true 时无效
+      circle: true, // 待办圆圈标记设置（如圆圈标记已签到日期），该设置与点标记设置互斥
+
       days: processedDays,
     });
   },
@@ -443,19 +443,19 @@ const conf = {
     var that = this
     var dummy = e.detail.month;
     var day = e.detail.day;
+    console.log(dummy)
+    console.log(day)
     if (e.detail.month < 10) {
       var dummy = String("0" + e.detail.month)
     }
     if (e.detail.day < 10) {
       var day = String("0" + e.detail.day)
     }
-    this.setData({
-      Selected: String(e.detail.year + "-" + dummy + "-" + day)
-    })
-    console.log(String(e.detail.year + "-" + dummy + "-" + day))
+    var date = e.detail.year + "-" + dummy + "-" + day;
+    console.log(date)
     const db = wx.cloud.database()
     db.collection('Visits').where({
-        Date: this.data.Selected
+        Date: date
       })
       .get({
         success: function(res) {
@@ -493,9 +493,10 @@ modalName:"newActivityModal"
   //设置提醒
   setAlarm: function(event) {
     console.log(event);
+    console.log(event.currentTarget.id)
     var formId = event.detail.formId;
     wx.cloud.callFunction({
-      name: 'updateDB',
+      name: 'updateLazybug',
       data: {
         dbName: "Visits",
         id: event.currentTarget.id,

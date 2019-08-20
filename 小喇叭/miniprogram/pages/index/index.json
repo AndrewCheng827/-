@@ -2,6 +2,6 @@
   "navigationBarTitleText": "SHSID 小喇叭",
   "usingComponents": {
     "calendar": "../../component/calendar/index",
-    "lottie": "lottie-miniapp/component/lottie"
+    "lottie": "../../miniprogram_npm/lottie-miniapp/component/lottie"
     }
   }
