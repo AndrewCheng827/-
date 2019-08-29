@@ -13,14 +13,15 @@ exports.main = async (event, context) => {
   // 1.查询是否有定时任务。（Visits)集合是否有数据。
   let taskRes = await db.collection('Visits').limit(100).get()
   let tasks = taskRes.data;
-  console.log(tasks);
   // 2.定时任务是否到达触发时间。只触发一次。
   let now = new Date();
+  console.log(now);
   try {
     console.log("Running execTime Function")
     for (let i = 0; i < tasks.length; i++) {
-      var taskDate = new Date(Date.parse(tasks[i].Date))
-      if (taskDate.getDate() == now.getDate() && taskDate.getMonth() == now.getMonth() && taskDate.getFullYear() == now.getFullYear()) { // 时间到
+      console.log(tasks[i].execTime);
+      console.log(now);
+      if (tasks[i].execTime.getFullYear() == now.getFullYear() && tasks[i].execTime.getMonth() == now.getMonth() && tasks[i].execTime.getDate() == now.getDate() && tasks[i].execTime.getHours() == now.getHours() && tasks[i].execTime.getMinutes() == now.getMinutes()) { // 时间到
       console.log("find one!")
         execTasks.push(tasks[i]); // 存入待执行任务栈
         // 定时任务数据库中删除该任务

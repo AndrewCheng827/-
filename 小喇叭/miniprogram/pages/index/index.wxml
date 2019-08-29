@@ -1,33 +1,35 @@
-  <view class="padding bg-white">
-    <view class="flex animated fadeInDown" >
-      <view class="flex-treble padding-sm margin-xs radius">
-        <text class="text-black text-xxl text " catchtap='roll'>SHSID \n Windtalker</text>
-                <view class="text-black text-sm radius" style='margin-top:10rpx;'>Activity notification app for SHSID</view>
-      </view>
-      
-      <view class="flex-sm padding-sm margin-xs radius" bindtap='easterEgg' data-pagename="self">
-        <view class="cu-avatar round" style="background-image:url({{userInfo.avatarUrl}}); margin-left:10rpx;"></view>
-      </view>
+<view class="padding bg-white">
+  <view class="flex animated fadeInDown">
+    <view class="flex-treble padding-sm margin-xs radius">
+      <text class="text-black text-xxl text " catchtap='roll'>SHSID \n Windtalker</text>
+      <view class="text-black text-sm radius" style='margin-top:10rpx;'>Activity notification app for SHSID</view>
     </view>
-        </view>
+
+    <view class="flex-sm padding-sm margin-xs radius" bindtap='easterEgg' data-pagename="self">
+      <view class="cu-avatar round" style="background-image:url({{userInfo.avatarUrl}}); margin-left:10rpx;"></view>
+    </view>
+  </view>
+</view>
 
 <calendar class="padding-lg" style="margin-left: 10px; margin-right: 10px; margin-top:20px;" calendarConfig="{{calendarConfig}}" bind:afterTapDay="afterTapDay" bind:whenChangeMonth="whenChangeMonth" bind:afterCalendarRender="afterCalendarRender"></calendar>
 
- <block wx:if='{{hasSchedules}}' wx:key="">
+<block wx:if='{{hasSchedules}}' wx:key="">
   <view class="cu-list menu {{menuBorder?'sm-border':''}} {{menuCard?'card-menu margin-top':''}}">
-    <view class="cu-item {{menuArrow?'arrow':''}}" wx:for = "{{schedules}}">
+    <view class="cu-item {{menuArrow?'arrow':''}}" wx:for="{{schedules}}">
       <view class="content">
         <text class="text-grey">{{item.Time}} {{item.description}}</text>
       </view>
       <view class="action">
-          <form bindsubmit="setAlarm" report-submit="true" id="{{item._id}}">
-        <button class="cu-btn round bg-green shadow" style="margin-right:10px;" form-type="submit">
-          <text class="cuIcon-notice"></text> Notify Me</button>
-    </form>
+        <form bindsubmit="setAlarm" report-submit="true" id="{{item._id}}">
+          <button class="cu-btn round bg-green shadow" style="margin-right:10px;" form-type="submit">
+            <text class="cuIcon-notice"></text> Notify Me</button>
+        </form>
+        <button wx:if="{{isTeacher}}" class="cu-btn round bg-green shadow" style="margin-right:10px;" bindtap="showModal" data-modalname="updateActivityModal" id="{{item._id}}">
+          <text class="cuIcon-notice"></text> Update Info</button>
       </view>
     </view>
   </view>
-  </block>
+</block>
 
 <view class="flex align-center justify-center">
   <button wx:if="{{isTeacher == true}}" class='cu-btn lg bg-green' bindtap='showNewActivity'>
@@ -37,7 +39,7 @@
 </view>
 
 <view wx:if="{{isTeacher == true}}" class='flex align-center justify-center' style="margin-top:15px;">
-<button class = "cu-btn lg bg-green" bindtap='showModal' data-modalname="newMessage">推送全局通知</button>
+  <button class="cu-btn lg bg-green" bindtap='showModal' data-modalname="newMessage">推送全局通知</button>
 </view>
 
 <view class="cu-modal {{modalName=='registerModal'?'show':''}}">
@@ -52,33 +54,46 @@
       Registration is required for the first time opening this miniapp.
     </view>
     <view class="cu-bar bg-white justify-center">
-        <form>
-          <view class="cu-form-group margin-top">
-            <view class="title">Grade</view>
-            <picker bindchange="PickerChange" value="{{gradeIndex}}" range="{{gradePicker}}">
-              <view class="picker">
-                {{gradePicker[gradeIndex]}}
-              </view>
-            </picker>
-          </view>
-                    <view class="cu-form-group">
-            <view class="title">Name</view>
-            <input placeholder="Name of yourself or kid's..." bindinput='getName'></input>
-          </view>
-          <view class="cu-form-group">
-            <view class="title">Class</view>
-            <input placeholder="Input 1 for both IB1A & IB1B" bindinput='getClass' type='number'></input>
-          </view>
-          <view class="cu-form-group">
-            <view class="title">StudentID</view>
-            <input placeholder="StudentID here..." bindinput='getCode'></input>
-          </view>
-          <view class="cu-form-group">
-            <view class="title">Validation Code</view>
-            <input placeholder="Validation code here..." bindinput='getValidation'></input>
-          </view>
-        </form>
-      </view>
+      <form>
+        <view class="cu-form-group margin-top">
+          <view class="title">Identity</view>
+          <picker bindchange="identityPickerChange" value="{{identityIndex}}" range="{{identityPicker}}">
+            <view class="picker">
+              {{identityPicker[identityIndex]}}
+            </view>
+          </picker>
+        </view>
+        <view wx:if="{{identity=='student'}}" class="cu-form-group margin-top">
+          <view class="title">Grade</view>
+          <picker bindchange="PickerChange" value="{{gradeIndex}}" range="{{gradePicker}}">
+            <view class="picker">
+              {{gradePicker[gradeIndex]}}
+            </view>
+          </picker>
+        </view>
+        <view class="cu-form-group" wx:if="{{identity=='parent'}}">
+          <view class="title">Name</view>
+          <input placeholder="Your kid's name" bindinput='getName'></input>
+        </view>
+        <view class="cu-form-group" wx:else>
+          <view class="title">Name</view>
+          <input placeholder="Your Name" bindinput='getName'></input>
+        </view>
+
+        <view class="cu-form-group" wx:if="{{identity=='student'}}">
+          <view class="title">Class</view>
+          <input placeholder="Input 1 for both IB1A & IB1B" bindinput='getClass' type='number'></input>
+        </view>
+        <view class="cu-form-group" wx:if="{{identity=='student'}}">
+          <view class="title">StudentID</view>
+          <input placeholder="StudentID here..." bindinput='getCode'></input>
+        </view>
+        <view class="cu-form-group">
+          <view class="title">Validation Code</view>
+          <input placeholder="Validation code here..." bindinput='getValidation'></input>
+        </view>
+      </form>
+    </view>
     <view class="padding-xl">
       <button class='cu-btn bg-green lg' bindgetuserinfo='register' open-type="getUserInfo">Register</button>
     </view>
@@ -94,54 +109,118 @@
       </view>
     </view>
     <view class="cu-bar bg-white justify-center">
-        <form>
+      <form>
         <view class="cu-form-group margin-top">
           <view class="title">Time</view>
-          <picker mode="time" value="{{time}}" start="09:01" end="21:01" bindchange="TimeChange">
+          <picker mode="time" value="{{time}}" start="00:00" end="23:59" bindchange="timeChange">
             <view class="picker">
               {{time}}
             </view>
           </picker>
         </view>
-         <view class="cu-form-group">
+
+        <view class="cu-form-group">
           <view class="title">Date</view>
-          <picker mode="date" value="{{date}}" start="2015-09-01" end="2020-09-01" bindchange="DateChange">
+          <picker mode="date" value="{{date}}" start="2015-09-01" end="2020-09-01" bindchange="dateChange">
             <view class="picker">
               {{date}}
             </view>
           </picker>
         </view>
-        	<view class="cu-form-group">
-          		<view class="title">Building：{{buildingChosen}}</view>
-		<switch class="switch-sex" checked bindchange="buildingChange"></switch>
-	</view>
-            <view class="cu-form-group">
-            <view class="title">Classroom</view>
-            <input placeholder="Class room here..." bindinput='getRoom'></input>
-          </view>
-          <view class="cu-form-group">
-            <view class="title">Activity Name</view>
-            <input placeholder="Activity name here..." bindinput='getDesc'></input>
-          </view>
-        </form>
-      </view>
+        <view class="cu-form-group margin-top">
+          <view class="title">Notification Time</view>
+          <picker mode="time" value="{{execTime}}" start="00:00" end="23:59" bindchange="execTimeChange">
+            <view class="picker">
+              {{execTime}}
+            </view>
+          </picker>
+        </view>
+
+        <view class="cu-form-group">
+          <view class="title">Building：{{buildingChosen}}</view>
+          <switch class="switch-sex" checked bindchange="buildingChange"></switch>
+        </view>
+        <view class="cu-form-group">
+          <view class="title">Classroom</view>
+          <input placeholder="Class room here..." bindinput='getRoom'></input>
+        </view>
+        <view class="cu-form-group">
+          <view class="title">Activity Name</view>
+          <input placeholder="Activity name here..." bindinput='getDesc'></input>
+        </view>
+      </form>
+    </view>
     <view class="padding-xl">
       <button class='cu-btn bg-green lg' bindtap='addActivity'>Submit</button>
     </view>
   </view>
 </view>
 
-<canvas catchtap="miao" id="test-canvas" canvas-id="test-canvas"></canvas>
-
-  <view class="padding-xs flex align-center bg-white">
-    <view class="flex-sub text-center">
-      <view class="solid-top text-xs padding">
-        <text class="text-gray" >Powered By QioNio - A basic yet complete O2O solution \n \n </text>
+<view class="cu-modal {{modalName=='updateActivityModal'?'show':''}}">
+  <view class="cu-dialog bg-white">
+    <view class="cu-bar bg-white justify-end">
+      <view class="content">Update Activity</view>
+      <view class="action" bindtap="hideModal">
+        <text class="cuIcon-close text-red"></text>
       </view>
     </view>
+    <view class="cu-bar bg-white justify-center">
+      <form>
+        <view class="cu-form-group margin-top">
+          <view class="title">Time</view>
+          <picker mode="time" value="{{time}}" start="00:00" end="23:59" bindchange="timeChange">
+            <view class="picker">
+              {{time}}
+            </view>
+          </picker>
+        </view>
+        <view class="cu-form-group">
+          <view class="title">Date</view>
+          <picker mode="date" value="{{date}}" start="2015-09-01" end="2020-09-01" bindchange="dateChange">
+            <view class="picker">
+              {{date}}
+            </view>
+          </picker>
+        </view>
+        <view class="cu-form-group margin-top">
+          <view class="title">Notification Time</view>
+          <picker mode="time" value="{{execTime}}" start="00:00" end="23:59" bindchange="execTimeChange">
+            <view class="picker">
+              {{execTime}}
+            </view>
+          </picker>
+        </view>
+        <view class="cu-form-group">
+          <view class="title">Building：{{buildingChosen}}</view>
+          <switch class="switch-sex" checked bindchange="buildingChange"></switch>
+        </view>
+        <view class="cu-form-group">
+          <view class="title">Classroom</view>
+          <input placeholder="Class room here..." bindinput='getRoom'></input>
+        </view>
+        <view class="cu-form-group">
+          <view class="title">Activity Name</view>
+          <input placeholder="Activity name here..." bindinput='getDesc'></input>
+        </view>
+      </form>
+    </view>
+    <view class="padding-xl">
+      <button class='cu-btn bg-green lg' bindtap='updateActivityInfo'>Submit</button>
+    </view>
   </view>
+</view>
 
-  <view class="cu-modal {{modalName=='newMessage'?'show':''}}">
+<canvas catchtap="miao" id="test-canvas" canvas-id="test-canvas"></canvas>
+
+<view class="padding-xs flex align-center bg-white">
+  <view class="flex-sub text-center">
+    <view class="solid-top text-xs padding">
+      <text class="text-gray">Powered By QioNio - A basic yet complete O2O solution \n \n </text>
+    </view>
+  </view>
+</view>
+
+<view class="cu-modal {{modalName=='newMessage'?'show':''}}">
   <view class="cu-dialog">
     <view class="cu-bar bg-white justify-end">
       <view class="content">全局通知推送</view>
