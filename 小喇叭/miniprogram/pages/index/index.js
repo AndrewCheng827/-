@@ -1,11 +1,11 @@
-import lottie from 'lottie-miniapp';
+import lottie from 'lottie-miniapp';//引入lottie动画库
 
-const canvasContext = wx.createCanvasContext('test-canvas');
-// 请求lottie的路径。注意开启downloadFile域名并且返回格式是json
-const animationData = require('../../utils/rainbowCat.js');
-const app = getApp();
-const db = wx.cloud.database();
-const _ = db.command;
+const canvasContext = wx.createCanvasContext('test-canvas'); //初始化动画canvas
+
+const animationData = require('../../utils/rainbowCat.js');// 请求lottie的路径。注意开启downloadFile域名并且返回格式是json
+
+const app = getApp(); //初始化app函数
+const db = wx.cloud.database(); //初始化微信云开发数据库函数
 
 //设置lottie动画canvas
 canvasContext.canvas = {
@@ -13,33 +13,23 @@ canvasContext.canvas = {
   height: 100
 };
 
-//表单参数，Todo：优化为Form形式
-var openId = "";
+var openId = ""; //用户openid
+var userInfo = {}; //微信用户信息
+var currentActivityId = '';//当前选中活动id
 
-var codeChosen = '';
-var validationChosen = '';
-var roomChosen = '';
-var descChosen = '';
-
-var chosenText = '';
-var currentActivityId = '';
-
-
-
+//用户注册表单代码
 var studentCode = "hizuji";
 var teacherCode = "saigo";
 var parentCode = "nvwa"
 var validationCode = studentCode;
-var isTeacher = false;
-var isParent = false;
-var timeChosen = '08:30';
-var dateChosen = '2019-09-01';
-var execTime = '08:30';
 
-var count = 0;
+var isTeacher = false; //教师鉴权参数
+var isParent = false; //家长鉴权函数
+var count = 0; //彩蛋计数参数
 
 const conf = {
   data: {
+    isValidated: false, //表单注册判断参数
     calendarConfig: {
       inverse: true, // 单选模式下是否支持取消选中,
       disablePastDay: false, // 是否禁选过去的日期
@@ -52,6 +42,7 @@ const conf = {
        */
       noDefault: true, // 初始化后是否自动选中当天日期，优先级高于defaultDay配置，两者请勿一起配置
     },
+    imageUrl: "https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1567219211969&di=7928756ed527b0b59433067d29de1970&imgtype=0&src=http%3A%2F%2F5b0988e595225.cdn.sohucs.com%2Fimages%2F20170922%2Fe0eb59d394264cbdaaf1a7f6a588ad28.jpeg",//image Placeholder
     gradeIndex: 0,
     gradePicker: ['Class of 2020', 'Class of 2021', 'Class of 2022', 'Class of 2023', 'Class of 2024'],
     identityIndex: 0,
@@ -86,14 +77,6 @@ const conf = {
       }
     });
 
-  },
-
-  //隐藏弹窗
-  hideModal(value) {
-    this.setData({
-      modalName: null,
-      isBlur: false,
-    });
   },
 
   //获取Calendar信息，渲染本地Todos
@@ -157,43 +140,11 @@ const conf = {
     });
   },
 
-  cleanUp: function(){
-    var timeChosen = '';
-    var dateChosen = '';
-    var execTime = '';
-  },
-
-  showModal: function(options) {
-    this.cleanUp();
-    currentActivityId = options.currentTarget.id
-    console.log(currentActivityId);
-    this.setData({
-      modalName: options.currentTarget.dataset.modalname
-    })
-  },
-
-  //彩蛋函数
-  easterEgg: function() {
-    count += 1;
-    if (count == 3) {
-      wx.showModal({
-        title: '提示',
-        content: '没有彩蛋哦',
-      })
-    } else if (count == 6) {
-      wx.showModal({
-        title: '噗呲，不是都说没有了吗',
-        content: '好吧好吧给你讲个笑话：从前有座山，山上有座庙。庙里有个小和尚，后面的我忘了',
-      })
-      count = 0;
-    }
-  },
-
   //从数据库下载用户信息
-  sync: function() {
+  sync: function () {
     var that = this;
     db.collection('user').doc(openId).get({ //建立或者更新数据库信息
-      success: function(res) {
+      success: function (res) {
         app.globalData.user = res.data;
         // res.data 包含该记录的数据
         wx.showToast({
@@ -206,7 +157,7 @@ const conf = {
         that.checkEmergency(res.data);
         that.isTeacher(res.data);
       },
-      fail: function() {
+      fail: function () {
         that.setData({
           modalName: "registerModal"
         });
@@ -215,24 +166,67 @@ const conf = {
 
   },
 
+  //检查全局推送状态
+  checkEmergency: function (user) {
+    var that = this;
+    console.log(user)
+    wx.hideLoading()
+    if (user.isAlarmed == false) {
+      wx.cloud.callFunction({
+        name: 'getDB',
+        data: {
+          dbName: "emergencyMessages"
+        }
+      })
+        .then(res => {
+          console.log(res.result.data)
+          wx.showModal({
+            title: 'NOTIFICATION',
+            content: res.result.data[res.result.data.length - 1].content,
+          })
+          wx.cloud.callFunction({
+            name: 'updateDB',
+            data: {
+              dbName: "user",
+              id: openId,
+              isAlarmed: true
+            }
+          })
+        })
+    }
+
+  },
+
+  //判断是否是Teacher=>是否显示Teacher按钮
+  isTeacher: function (user) {
+    var that = this;
+    if (user.isTeacher == true) {
+      that.setData({
+        isTeacher: true
+      });
+    }
+  },
+
   //新建活动
   addActivity: function(res) {
+    console.log("res: ", res)
     var that = this;
-    var datePure = res.detail.date;
-    var dateParsed = this.parseTime(execTime, res.detail.date);
-    if (res.detail.desc != '' && res.detail.room != '') {
-      var location = this.data.buildingChosen + " " + res.detail.room;
-      console.log(dateParsed);
+    var datePure = res.detail.value.date;
+    var dateParsed = this.parseTime(res.detail.value.execTime, res.detail.value.date);
+    console.log("dateParsed: " + dateParsed);
+    if (res.detail.value.desc != '' && res.detail.value.classRoom != '') {
+      var location = this.data.buildingChosen + " " + res.detail.value.classRoom;
+
       wx.showLoading({
         title: 'Processing',
       })
       db.collection('Visits').add({
         data: {
           execTime: dateParsed, // 触发时间。到达这个时间开始执行。
-          Time: res.detail.time,
+          Time: res.detail.value.time,
           Date: datePure,
           location: location,
-          description: descChosen,
+          description: res.detail.value.desc,
           lazybugs: []
         },
         success: function(res) {
@@ -257,13 +251,16 @@ const conf = {
 
   },
 
-  updateActivityInfo: function (res) {
+  //更新活动
+  updateActivity: function (res) {
+    console.log("res: ", res)
     var that = this;
-    var datePure = res.detail.date;
-    var dateParsed = this.parseTime(execTime, res.detail.date);
-    if (res.detail.desc != '' && res.detail.room != '') {
-      var location = this.data.buildingChosen + " " + res.detail.room;
-      console.log(res.detail.time,datePure,dateParsed)
+    var datePure = res.detail.value.date;
+    var dateParsed = this.parseTime(res.detail.value.execTime, res.detail.value.date);
+    console.log("dateParsed: " + dateParsed);
+    if (res.detail.value.desc != '' && res.detail.value.classRoom != '') {
+      var location = this.data.buildingChosen + " " + res.detail.value.classRoom;
+      console.log(res.detail.value.time,datePure,dateParsed)
       wx.showLoading({
         title: 'Processing',
       })
@@ -272,20 +269,20 @@ const conf = {
         data: {
           id: currentActivityId,
           execTime: dateParsed.valueOf(), // 触发时间。到达这个时间开始执行。
-          Time: res.detail.time,
-          Date: datePure.valueOf(),
+          Time: res.detail.value.time,
+          Date: datePure,
           location: location,
-          description: res.detail.desc,
+          description: res.detail.value.desc,
           
         }
       }).then(res => {
         wx.hideLoading();
-        that.setData({
-          modalname: null
-        })
         wx.showToast({
           title: 'Activity Updated!',
           icon: "none"
+        })
+        wx.reLaunch({
+          url: '../index/index',
         })
       })
     } else {
@@ -296,12 +293,53 @@ const conf = {
     }
   },
 
+  //删除活动
+  deleteActivity: function (e) {
+    wx.showModal({
+      title: 'Warning',
+      content: 'Are you sure that you want to deletre this activity?',
+      cancelText: 'Cancel',
+      confirmText: 'Confirm',
+      success: res => {
+        wx.showLoading({
+          title: 'Deleting...',
+        })
+        wx.cloud.callFunction({
+          name: 'removeDB',
+          data: {
+            dbName: "Visits",
+            id: e.currentTarget.id
+          }
+        }).then(res => {
+          wx.hideLoading();
+          wx.showToast({
+            title: 'Activity Deleted!',
+            icon: "none"
+          })
+          wx.reLaunch({
+            url: '../index/index',
+          })
+        })
+      }
+    })
+  },
 
-  addAlarm: function() {
+  //转换日期数据格式
+  parseTime: function (execTime, date) {
+    date = new Date(Date.parse(date));
+    var hour = execTime.substr(0, 2);
+    var minute = execTime.substr(3);
+    date.setHours(hour);
+    date.setMinutes(minute);
+    return date;
+  },
+
+  //添加全局推送信息
+  addAlarm: function(e) {
     var that = this;
     db.collection('emergencyMessages').add({
       data: {
-        content: chosenText
+        content: e.detail.value.emergencyText
       },
       success: function(res) {
         wx.cloud.callFunction({
@@ -324,7 +362,7 @@ const conf = {
           }).then(res => {
             wx.hideLoading();
             wx.showToast({
-              title: '全局通知已推送',
+              title: 'Pushed!',
             })
             that.setData({
               modalName: null
@@ -334,61 +372,65 @@ const conf = {
     })
   },
 
-  //改提醒日期
-  execTimeChange(e) {
-    execTime = e.detail.value
+  //改变提醒时间
+  timeChange(e) {
     this.setData({
-      execTime: execTime
+      time: e.detail.value
+    })
+  },
+
+  //改变提醒时间
+  execTimeChange(e) {
+    this.setData({
+      execTime: e.detail.value
     })
   },
 
   //改变日期
   dateChange(e) {
-    dateChosen = e.detail.value
     this.setData({
-      date: dateChosen
+      date: e.detail.value
     })
   },
 
-
-  //获取校验码
-  getValidation: function(e) {
-    validationChosen = e.detail.value;
-  },
-
-
-  //获取身份
+  //改变身份
   identityPickerChange(e) {
     var identityChosen = this.data.identityPicker[e.detail.value];
-    console.log(identityChosen);
-    if (identityChosen == 'Teacher') {
+    if (identityChosen == 'Student') {
+      validationCode = studentCode;
+      this.setData({
+        identityIndex: e.detail.value,
+        identity: 'student'
+      })
+      isTeacher = false;
+      isParent = false;
+    }
+    else if (identityChosen == 'Teacher') {
       validationCode = teacherCode;
       this.setData({
         identityIndex: e.detail.value,
         identity: 'teacher'
       })
       isTeacher = true;
-    } else if (identityChosen == 'Parent') {
+      isParent =false;
+    } 
+    else if (identityChosen == 'Parent') {
       validationCode = parentCode;
       this.setData({
         identityIndex: e.detail.value,
         identity: 'parent',
       })
+      isTeacher = false;
       isParent = true;
-    } else {
-      this.setData({
-        identityIndex: e.detail.value
-      })
     }
 
   },
 
-  //获取年级
+  //改变年级
   PickerChange(e) {
     this.setData({
       gradeIndex: e.detail.value
     })
-    gradeChosen = this.data.gradePicker[e.detail.value];
   },
 
   //监听教学楼变化，获取教学楼信息
@@ -402,46 +444,53 @@ const conf = {
     })
   },
 
-  //以上为活动表单函数
+  //获取微信用户信息
+  getUserInfo: function(res) {
+    wx.showLoading({
+      title: 'Validating......',
+    })
+    userInfo = res.detail.userInfo;
+    this.setData({
+      isValidated: true
+    })
+    wx.hideLoading();
+    
+  },
 
   //用户注册
   register: function(res) {
-    console.log(validationCode)
-    if ((this.data.identity == 'teacher' || this.data.identity == 'parent') && validationChosen == validationCode) {
-      var that = this;
-      var userInfo = res.detail.userInfo;
-      app.globalData.user = userInfo;
+    console.log(res);
+    if ((this.data.identity == 'teacher' || this.data.identity == 'parent') && res.detail.value.validation == validationCode) {
       db.collection('user').add({
         data: {
           _id: openId,
           info: userInfo,
-          name: res.detail.name,
-          grade: res.detail.grade,
-          code: res.detail.code,
+          name: res.detail.value.name,
+          grade: res.detail.value.grade,
+          code: res.detail.value.code,
           isTeacher: isTeacher,
           isParent: isParent,
           isAlarmed: false
         }
       });
-      app.globalData.user = res.data;
       wx.showToast({
         title: 'Registered!',
       });
       wx.reLaunch({
         url: '../index/index',
       })
-    } else if (classChosen != '' && codeChosen != '' && nameChosen != '' && validationChosen == validationCode && classChosen > 0 && classChosen < 12 && codeChosen.substr(0, 1) == 'G') {
+    } 
+    
+    else if (res.detail.value.classRoom != '' && res.detail.value.code != '' && res.detail.value.name != '' && res.detail.value.validation == validationCode && res.detail.value.classRoom > 0 && res.detail.value.classRoom < 12 && res.detail.value.code.substr(0, 1) == 'G') {
       var that = this;
-      var userInfo = res.detail.userInfo;
-      app.globalData.user = userInfo;
       db.collection('user').add({
         data: {
           _id: openId,
           info: userInfo,
-          name: nameChosen,
-          grade: gradeChosen,
-          classroom: classChosen,
-          code: codeChosen,
+          name: res.detail.value.name,
+          grade: res.detail.value.grade,
+          classroom: res.detail.value.classRoom,
+          code: res.detail.value.code,
           isTeacher: isTeacher,
           isStudent: true,
           isParent: isParent,
@@ -459,52 +508,6 @@ const conf = {
       wx.showToast({
         title: 'Info Incorrect',
       })
-    }
-
-  },
-
-  //判断是否是Teacher=>是否显示Teacher按钮
-  isTeacher: function(user) {
-    var that = this;
-    if (user.isTeacher == true) {
-      that.setData({
-        isTeacher: true
-      });
-    }
-  },
-
-  //获取推送内容
-  getText: function(e) {
-    chosenText = e.detail.value;
-  },
-
-  //检查全局推送状态
-  checkEmergency: function(user) {
-    var that = this;
-    console.log(user)
-    wx.hideLoading()
-    if (user.isAlarmed == false) {
-      wx.cloud.callFunction({
-          name: 'getDB',
-          data: {
-            dbName: "emergencyMessages"
-          }
-        })
-        .then(res => {
-          console.log(res.result.data)
-          wx.showModal({
-            title: 'NOTIFICATION',
-            content: res.result.data[res.result.data.length - 1].content,
-          })
-          wx.cloud.callFunction({
-            name: 'updateDB',
-            data: {
-              dbName: "user",
-              id: openId,
-              isAlarmed: true
-            }
-          })
-        })
     }
 
   },
@@ -557,20 +560,6 @@ const conf = {
     })
   },
 
-  //显示新建活动弹窗
-  showNewActivity: function() {
-    this.setData({
-      modalName: "newActivityModal"
-    })
-  },
-
-  registerForm: function(event){
-    var personalInfo
-    var gradeChosen = 'Class of 2020';
-    var classChosen = 0;
-    var nameChosen = '';
-  },
-
   //设置提醒
   setAlarm: function(event) {
     console.log(event);
@@ -592,21 +581,46 @@ const conf = {
     console.log(event)
   },
 
-  parseTime: function(execTime, date) {
-    date = new Date(Date.parse(date));
-    var hour = execTime.substr(0, 2);
-    var minute = execTime.substr(3);
-    date.setHours(hour);
-    date.setMinutes(minute);
-    return date;
+  //显示弹窗
+  showModal: function (options) {
+    currentActivityId = options.currentTarget.id
+    console.log(currentActivityId);
+    this.setData({
+      modalName: options.currentTarget.dataset.modalname
+    })
   },
+
+  //隐藏弹窗
+  hideModal(value) {
+    this.setData({
+      modalName: null,
+      isBlur: false,
+    });
+  },
+
   //播放猫咪叫声
-  miao: function() {
+  miao: function () {
     const backgroundAudioManager = wx.getBackgroundAudioManager();
     backgroundAudioManager.title = 'MIAO!!!'
     backgroundAudioManager.src = 'http://downsc.chinaz.net/Files/DownLoad/sound1/201807/10310.mp3'
-  }
-};
+  },
 
+  //彩蛋函数
+  easterEgg: function () {
+    count += 1;
+    if (count == 3) {
+      wx.showModal({
+        title: '提示',
+        content: '没有彩蛋哦',
+      })
+    } else if (count == 6) {
+      wx.showModal({
+        title: '噗呲，不是都说没有了吗',
+        content: '好吧好吧给你讲个笑话：从前有座山，山上有座庙。庙里有个小和尚，后面的我忘了',
+      })
+      count = 0;
+    }
+  },
+};
 
 Page(conf);
